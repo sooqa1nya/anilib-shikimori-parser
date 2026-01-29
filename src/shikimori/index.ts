@@ -12,6 +12,7 @@ class Shikimori {
 
         await new Promise(resolve => setTimeout(resolve, 3000));
 
+        // Из выпавшего списка выписываем тайты (название-ссылка)
         const arrHrefs = await page.$$eval('.b-db_entry-variant-list_item', elements => {
             const array: any[] = [];
             elements.forEach((el) => {
@@ -44,10 +45,10 @@ class Shikimori {
             await new Promise(resolve => setTimeout(resolve, 2000));
             const triggers = await page.$$('.add-trigger');
             for (const trigger of triggers) {
+                // Достаем название кнопок
                 const triggerText = await trigger.$eval('.status-name', el => el.getAttribute('data-text'));
                 if (triggerText == titleStatus) {
-                    // await trigger.click();
-
+                    // Имитируем нажатие мыши
                     const triggerButton = await trigger.evaluate((el, sel: string) => {
                         const element = el.querySelector(sel);
                         if (element) {
