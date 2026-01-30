@@ -81,10 +81,19 @@ class Shikimori {
         await fs.appendFile(filePath, title + '\n', 'utf-8');
     }
 
+    private async deleteLogs() {
+        const fileSuccessfully = path.join(__dirname, 'Successfully.txt');
+        const fileUnsuccessful = path.join(__dirname, 'Unsuccessful.txt');
+
+        await fs.rm(fileSuccessfully);
+        await fs.rm(fileUnsuccessful);
+    }
+
     public async main(url: string) {
         const page = await puppeteerBrowser.newPage();
         await page.goto(url);
 
+        await this.deleteLogs();
         for (const list of titles) {
             for (const title of list.titles) {
                 const link = await this.gotoTitle(page, title);
