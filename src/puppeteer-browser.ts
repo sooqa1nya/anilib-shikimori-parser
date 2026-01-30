@@ -34,6 +34,14 @@ class PuppeteerBrowser {
         }
     }
 
+    public async closeAllPages() {
+        if (!this.browser) {
+            await this.launchBrowser();
+        }
+
+        await this.closeBrowser();
+    }
+
     private async blockImage(page: Page) {
 
         await page.setRequestInterception(true);
