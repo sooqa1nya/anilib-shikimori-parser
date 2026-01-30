@@ -85,8 +85,10 @@ class Shikimori {
         const fileSuccessfully = path.join(__dirname, 'Successfully.txt');
         const fileUnsuccessful = path.join(__dirname, 'Unsuccessful.txt');
 
-        await fs.rm(fileSuccessfully);
-        await fs.rm(fileUnsuccessful);
+        try {
+            await fs.rm(fileSuccessfully);
+            await fs.rm(fileUnsuccessful);
+        } catch { }
     }
 
     public async main(url: string) {
