@@ -13,9 +13,9 @@ class PuppeteerBrowser {
 
     private async launchBrowser() {
         this.browser = await puppeteer.launch({
-            headless: false,
+            // headless: false,
             userDataDir: path.join('./cache-browser'),
-            protocolTimeout: 400000,
+            protocolTimeout: 14_400_000,
             args: [
                 '--no-sandbox'
             ]
