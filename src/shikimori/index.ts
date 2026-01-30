@@ -1,5 +1,7 @@
 import { puppeteerBrowser } from '../puppeteer-browser';
 import { Page } from 'puppeteer';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import titles from '../anilib/titles.json';
 
 class Shikimori {
@@ -37,40 +39,46 @@ class Shikimori {
             return;
         }
 
-        if (statusName != titleStatus) {
-            const triggerArrow = await page.$('.trigger-arrow');
-            await triggerArrow?.click();
-            await page.waitForSelector('.expanded-options', { timeout: 20000 });
-
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            const triggers = await page.$$('.add-trigger');
-            for (const trigger of triggers) {
-                // Достаем название кнопок
-                const triggerText = await trigger.$eval('.status-name', el => el.getAttribute('data-text'));
-                if (triggerText == titleStatus) {
-                    // Имитируем нажатие мыши
-                    const triggerButton = await trigger.evaluate((el, sel: string) => {
-                        const element = el.querySelector(sel);
-                        if (element) {
-                            const { top, left, width, height } = element.getBoundingClientRect();
-                            return { x: left + width / 2, y: top + height / 2 };
-                        }
-                        return null;
-                    }, '.status-name');
-
-                    if (!triggerButton) {
-                        console.error('shikimori - Кнопка не найдена');
-                        continue;
-                    }
-                    await page.mouse.move(triggerButton.x, triggerButton.y, { steps: 10 });
-                    await new Promise(resolve => setTimeout(resolve, Math.random() * 300 + 50));
-                    await page.mouse.click(triggerButton.x, triggerButton.y);
-                    await new Promise(resolve => setTimeout(resolve, Math.random() * 400 + 100));
-                }
-            }
+        if (statusName == titleStatus) {
+            return;
         }
 
+        const triggerArrow = await page.$('.trigger-arrow');
+        await triggerArrow?.click();
+        await page.waitForSelector('.expanded-options', { timeout: 20000 });
+
         await new Promise(resolve => setTimeout(resolve, 2000));
+        const triggers = await page.$$('.add-trigger');
+        for (const trigger of triggers) {
+            // Достаем название кнопок
+            const triggerText = await trigger.$eval('.status-name', el => el.getAttribute('data-text'));
+            if (triggerText == titleStatus) {
+                // Имитируем нажатие мыши
+                const triggerButton = await trigger.evaluate((el, sel: string) => {
+                    const element = el.querySelector(sel);
+                    if (element) {
+                        const { top, left, width, height } = element.getBoundingClientRect();
+                        return { x: left + width / 2, y: top + height / 2 };
+                    }
+                    return null;
+                }, '.status-name');
+
+                if (!triggerButton) {
+                    console.error('shikimori - Кнопка не найдена');
+                    continue;
+                }
+                await page.mouse.move(triggerButton.x, triggerButton.y, { steps: 10 });
+                await new Promise(resolve => setTimeout(resolve, Math.random() * 300 + 50));
+                await page.mouse.click(triggerButton.x, triggerButton.y);
+                await new Promise(resolve => setTimeout(resolve, Math.random() * 400 + 100));
+            }
+        }
+        await new Promise(resolve => setTimeout(resolve, 2000));
+    }
+
+    private async logTitle(fileName: string, title: string) {
+        const filePath = path.join(__dirname, fileName + '.txt');
+        await fs.appendFile(filePath, title + '\n', 'utf-8');
     }
 
     public async main(url: string) {
@@ -81,7 +89,8 @@ class Shikimori {
             for (const title of list.titles) {
                 const link = await this.gotoTitle(page, title);
                 if (!link) {
-                    console.log(` [НЕ НАЙДЕНО] ${title} | ${list.name}`);
+                    console.log(`[НЕ НАЙДЕНО] ${list.name} | ${title}`);
+                    await this.logTitle('Unsuccessful', `${title} | ${list.name}`);
                     continue;
                 }
 
@@ -89,11 +98,11 @@ class Shikimori {
                 await newPage.goto(link);
                 await this.changeStatus(newPage, list.name);
                 await newPage.close();
+                await this.logTitle('Successfully', title);
             }
         }
-
+        console.log(`[УСПЕШНО] Весь список тайтлов с animelib был перенесен. Подробнее в логах ./src/shikimori/*.txt`);
     }
-
 }
 
 export const shikimori = new Shikimori();;
